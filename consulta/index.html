@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Consulta de inventario</title>
+  <style>
+    html:not(.sesion-lista) body{visibility:hidden}*{box-sizing:border-box}body{margin:0;background:#f3f6f7;font-family:Arial,sans-serif;color:#18353b}.top{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:18px 5%;background:#174f5b;color:#fff}.top h1{margin:0;font-size:22px}.acciones{display:flex;gap:10px;align-items:center}.acciones button,.admin{border:0;border-radius:8px;padding:10px 13px;cursor:pointer;text-decoration:none;background:#fff;color:#174f5b;font-weight:700}.admin{display:none}.wrap{width:min(1200px,92%);margin:25px auto}.panel{background:#fff;border-radius:16px;padding:22px;box-shadow:0 5px 22px rgba(0,0,0,.06)}input{width:100%;padding:14px;border:1px solid #ccd8db;border-radius:10px;font-size:16px}.estado{color:#61767b;margin:15px 0}.tabla{overflow:auto;max-height:65vh}table{width:100%;border-collapse:collapse;min-width:720px}th,td{text-align:left;padding:12px;border-bottom:1px solid #e7edef}th{position:sticky;top:0;background:#eef4f5}.codigo-caja{font-weight:700;color:#174f5b;background:#e7f2f4;border-radius:6px;display:inline-block;padding:5px 8px;white-space:nowrap}.vacio{text-align:center;padding:40px;color:#7b8d91}
+  </style>
+</head>
+<body>
+  <header class="top"><div><h1>Consulta de inventario</h1><small id="perfil"></small></div><div class="acciones"><a id="irAdmin" class="admin" href="../actualizador/index.html">Actualizador</a><button id="salir">Cerrar sesión</button></div></header>
+  <main class="wrap"><section class="panel"><input id="buscar" placeholder="Buscar por clave, descripción, categoría, ubicación o código de caja" autocomplete="off"><div id="estado" class="estado">Cargando inventario...</div><div class="tabla"><table><thead><tr><th>Clave</th><th>Descripción</th><th>Categoría</th><th>Ubicación</th><th>Código de caja</th></tr></thead><tbody id="resultados"></tbody></table></div></section></main>
+  <script type="module">
+    import { protegerPagina, cerrarSesion } from "../js/session.js";
+    const sesion = await protegerPagina({ rolesPermitidos: ["admin", "usuario"] });
+    if (sesion) {
+      perfil.textContent = `${sesion.perfil.nombre || sesion.usuario.email} · ${sesion.perfil.rol}`;
+      if (sesion.perfil.rol === "admin") irAdmin.style.display = "inline-block";
+      salir.addEventListener("click", cerrarSesion);
+    }
+    let datos=[]; const LIMITE=300;
+    const valor=(obj,...nombres)=>{for(const n of nombres){if(obj[n]!==undefined)return String(obj[n]??"")}return ""};
+    function pintar(lista){
+      resultados.innerHTML="";
+      const frag=document.createDocumentFragment();
+      lista.slice(0,LIMITE).forEach(p=>{
+        const tr=document.createElement("tr");[
+          valor(p,"Clave","clave"),
+          valor(p,"Descripción","Descripcion","descripcion"),
+          valor(p,"Categoría","Categoria","categoria"),
+          valor(p,"Ubicación","Ubicacion","ubicacion"),
+          valor(p,"Código de caja","Codigo de caja","codigoCaja","codigo_caja")
+        ].forEach((v,indice)=>{
+          const td=document.createElement("td");
+          if(indice===4&&v){const span=document.createElement("span");span.className="codigo-caja";span.textContent=v;td.appendChild(span)}else{td.textContent=v}
+          tr.appendChild(td)});
+          frag.appendChild(tr)});
+          resultados.appendChild(frag);
+          estado.textContent=`${lista.length.toLocaleString("es-MX")} 
+          coincidencias${lista.length>LIMITE?` · mostrando las primeras ${LIMITE}`:""}`}
+    try{const r=await fetch("../inventario.json",{cache:"no-store"});if(!r.ok)throw new Error("No se encontró inventario.json");datos=await r.json();pintar(datos)}catch(e){estado.textContent=e.message;resultados.innerHTML='<tr><td colspan="5" class="vacio">Coloca inventario.json en la raíz del proyecto.</td></tr>'}
+    buscar.addEventListener("input",()=>{const q=buscar.value.trim().toLocaleLowerCase("es");if(!q)return pintar(datos);pintar(datos.filter(p=>Object.values(p).some(v=>String(v??"").toLocaleLowerCase("es").includes(q))))});
+  </script>
+</body>
+</html>
