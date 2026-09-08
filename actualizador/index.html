@@ -474,26 +474,15 @@
 
       filasOrigen++;
 
-      let cantidad = 1;
-      if (columnas.cantidad !== undefined) {
-        cantidad = parsearCantidad(fila[columnas.cantidad]);
-      }
-
-      for (let copia = 0; copia < cantidad; copia++) {
-        registros.push({
-          Clave: clave,
-          Descripción: descripcion,
-          Categoría: categoria,
-          Ubicación: ubicacion,
-          "Código de caja": codigoCaja,
-          Departamento: departamento,
-          Precio: precio
-        });
-      }
-
-      if (cantidad > 1) {
-        filasAdicionales += cantidad - 1;
-      }
+      registros.push({
+        Clave: clave,
+        Descripción: descripcion,
+        Categoría: categoria,
+        Ubicación: ubicacion,
+        "Código de caja": codigoCaja,
+        Departamento: departamento,
+        Precio: precio
+      });
     }
 
     return { registros, filasOrigen, filasAdicionales };
