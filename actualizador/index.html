@@ -449,7 +449,12 @@
 
       const clave = limpiar(fila[columnas.clave]);
       const descripcion = limpiar(fila[columnas.descripcion]);
-      const categoria = categoriaDesdeArchivo(archivo);
+      const categoriaExcel =
+        columnas.categoria !== undefined
+          ? limpiar(fila[columnas.categoria])
+          : "";
+
+      const categoria = categoriaExcel || categoriaDesdeArchivo(archivo);
       const ubicacion =
         columnas.ubicacion !== undefined
           ? limpiar(fila[columnas.ubicacion])
